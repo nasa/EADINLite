@@ -34,18 +34,18 @@ the EADIN protocol.
 
 The EADIN protocal as implemented by this code has the following structure:
 Total Size: 18 bytes
-* Preamble: 3 Bytes
-	* byte start byte (0x00, 0x01)
-	* byte sync  byte (0x55)
-* Headder: 5 Bytes 
+* Preamble: 3 bytes
+	* 1 byte a start byte (0x00, 0x01)
+	* 1 byte a sync  byte (0x55)
+* Headder: 5 bytes 
 	* 1 byte request type (ENQ/ACK/NAK = 0x05/0x06/0x15)
 	* 1 byte node_ID of desination
 	* 1 byte node_ID of sender
 	* 1 byte unique message number
 	* 1 byte extra space to be used in future development
-* Data: Variable (8 bytes Default)
-	* 8 Bytes DATA_L (can be modified)
-* Footer: 2 Bytes 
+* Data: X bytes (8 bytes Default)
+	* 8 bytes DATA_L (can be modified)
+* Footer: 2 bytes 
 	* 2 bytes CRCFast (a 16 bit CRC, Default)
 
 References:
