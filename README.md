@@ -32,21 +32,21 @@ of 1 millisecond. Additionally, the other protocols did not implement the
 same message system as specified by the preliminary documents regarding
 the EADIN protocol.
 
-The EADIN protocal as implemented by this code has the following structure: \n
-Total Size: 18 bytes \n
-Preamble: 3 Bytes \n
-\t 2 byte start byte (0x00, 0x01) \n
-\t 1 byte sync  byte (0x55) \n
-Headder: 5 Bytes \n
-\t 1 byte request type (ENQ/ACK/NAK = 0x05/0x06/0x15) \n
-\t 1 byte node_ID of desination \n
-\t 1 byte node_ID of sender \n
-\t 1 byte unique message number \n
-\t 1 byte extra space to be used in future development \n
-Data: Variable (8 bytes Default) \n
-\t 8 Bytes DATA_L (can be modified) \n
-Footer: 2 Bytes \n
-\t 2 bytes CRCFast (a 16 bit CRC, Default) \n
+The EADIN protocal as implemented by this code has the following structure:
+Total Size: 18 bytes
+* Preamble: 3 Bytes
+** byte start byte (0x00, 0x01)
+** byte sync  byte (0x55)
+* Headder: 5 Bytes 
+** 1 byte request type (ENQ/ACK/NAK = 0x05/0x06/0x15)
+** 1 byte node_ID of desination
+** 1 byte node_ID of sender
+** 1 byte unique message number
+** 1 byte extra space to be used in future development
+* Data: Variable (8 bytes Default)
+** 8 Bytes DATA_L (can be modified)
+* Footer: 2 Bytes 
+** 2 bytes CRCFast (a 16 bit CRC, Default)
 
 References:
 	Ross N. Williams, A painless guide to CRC Error Detection Algorithms
