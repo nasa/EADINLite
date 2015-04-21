@@ -1,6 +1,6 @@
 # EADINLite
 EADIN_Lite Network Protocol
-
+ 
 Authored by Eliot Aretskin-Hariton
 NASA Glenn Research Center, Cleveland, Ohio, 44135
 earetski@mail.nasa.gov
