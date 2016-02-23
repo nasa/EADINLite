@@ -10,12 +10,13 @@ Network Protocol Summary Stats:
 * Command / Response protocol using 1 Master / Multiple Slave Architecture
 * 8 Byte payload
 * RTT Performance         
-	* _(see note)__|______TYPICAL___|____WORST CASE__|
-	* 4000000 baud_|____943 +/- 13__|____981 +/- 13__| 
-	* _921600 baud_|__1,197 +/- 15__|__1,280 +/-  7__|
-	* _115200 baud_|__4,467 +/- 12__|__4,907 +/-  7__|
-	* ___9600 baud_|_45,798 +/- 12__|_50,750 +/- 20__|
-	* ____units____|(micros 1-sigma)|(micros 1-sigma)|
+|  (see Note)  | TYPICAL        | WORSE CASE     |
+|-------------:|---------------:|---------------:|
+| 4000000 baud |    943 +/- 13  |   981 +/- 13   |
+|  921600 baud |  1,197 +/- 15  |  1,280 +/-  7  |
+|  115200 baud |  4,467 +/- 12  |  4,907 +/-  7  |
+|    9600 baud | 45,798 +/- 12  | 50,750 +/- 20  |
+|     units    |(micros 1-sigma)|(micros 1-sigma)|
 
 Note: Performance based on message Round Trip Time (RTT), which includes
 formulation of the message by the master, receipt of message by slave
