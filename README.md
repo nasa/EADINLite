@@ -26,10 +26,10 @@ Time is expressed in microseconds.
 
 * Memory Requirements
 
-| Memeory Req. | Program Storage (B) | Dynamic Memory (B) |
-|:------------:|:-------------------:|:------------------:|
-| Default      | 9,510               |    908             |
-| Minimum      | 8618                | 396                |
+| Memeory Req. | Program Storage (Bytes) | Dynamic Memory (Bytes) |
+|:------------:|:-----------------------:|:----------------------:|
+| Default      | 9,510                   |    908                 |
+| Minimum      | 8,618                   | 396                    |
 
 **Overview:**
 This code was created to support the Distributed Engine Control task
