@@ -9,7 +9,8 @@ Network Protocol Summary Stats:
 * Half-Duplex works with wired or wireless networks
 * Command / Response protocol using 1 Master / Multiple Slave Architecture
 * 8 Byte payload
-* RTT Performance         
+* RTT Performance   
+      
 |  (see Note)  | TYPICAL        | WORSE CASE     |
 |------------- |--------------- |--------------- |
 | 4000000 baud |    943 +/- 13  |   981 +/- 13   |
