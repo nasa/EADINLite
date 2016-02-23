@@ -11,13 +11,13 @@ earetski@mail.nasa.gov
 * 8 Byte payload
 * RTT Performance (See Table and Note below)  
       
-|  Speed       | TYPICAL        | WORSE CASE     |
-|------------- |--------------- |--------------- |
-| 4000000 baud |    943 +/- 13  |   981 +/- 13   |
-|  921600 baud |  1,197 +/- 15  |  1,280 +/-  7  |
-|  115200 baud |  4,467 +/- 12  |  4,907 +/-  7  |
-|    9600 baud | 45,798 +/- 12  | 50,750 +/- 20  |
-|     units    |(micros 1-sigma)|(micros 1-sigma)|
+|  Speed       |  TYPICAL        | WORSE CASE      |
+|:------------:|:---------------:|:---------------:|
+| 4000000 baud |     943 +/- 13  |   981 +/- 13    |
+|  921600 baud |   1,197 +/- 15  |  1,280 +/-  7   |
+|  115200 baud |   4,467 +/- 12  |  4,907 +/-  7   |
+|    9600 baud |  45,798 +/- 12  | 50,750 +/- 20   |
+|     units    | (micros 1-sigma)|(micros 1-sigma) |
 
 Note: Performance based on message Round Trip Time (RTT), which includes
 formulation of the message by the master, receipt of message by slave
