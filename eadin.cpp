@@ -629,7 +629,7 @@ uint16_t EADIN::CRCFast(uint8_t T_message[]){
     for (int m = PREAMBLE_L; m < MESSAGE_L-FOOTER_L; m++){
         data_tmp = T_message[m] ^ (remainder >> 8); // take just one byte of the remainder 
         remainder =  word(CRCtable1[data_tmp],CRCtable2[data_tmp]) ^ (remainder << 8); // using the data calculated previously, XOR it with the polynomial, then XOR that with the other byte of the remainter, then repeat
-    // we had to splut the tables up because the arduino mega2560 didn't like a single array of size uint16_t [256]    
+    // we had to split the tables up because the arduino mega2560 didn't like a single array of size uint16_t [256]    
     }
     remainder |= 1 << 15; // writes a 1 to the most significant bit, this is a C++ generic implementation
     //bitSet(remainder,15); // writes a 1 to the most significant bit, this is an arduino specific implementation
