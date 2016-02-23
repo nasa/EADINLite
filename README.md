@@ -24,6 +24,12 @@ formulation of the message by the master, receipt of message by slave
 and recept of respons from slave by master. master -> slave -> master. 
 Time is expressed in microseconds.
 
+* Memory Requirements
+| Memeory Req. | Program Storage (B) | Dynamic Memory (B) |
+|:------------:|:-------------------:|:------------------:|
+| Default      | 9,510               |    908             |
+| Minimum      | 8618                | 396                |
+
 **Overview:**
 This code was created to support the Distributed Engine Control task
 as part of the Fixed Wing Aeronautics project. The purpose of this research 
@@ -68,6 +74,7 @@ Total Size: 18 bytes
 	* 8 bytes DATA_L (can be modified)
 * Footer: 2 bytes 
 	* 2 bytes CRCFast (a 16 bit CRC, Default)
+
 
 **Updates:**
 Version 2 is incompatible with previous versions as it is constructed with 
