@@ -1,12 +1,12 @@
 # EADINLite
 EADIN_Lite Network Protocol 
  
-Authored by Eliot Aretskin-Hariton, [Intelligent Control and Autonomy Branch](http://www.grc.nasa.gov/WWW/cdtb/index.html),
-NASA Glenn Research Center
-eliot.d.aretskin-hariton@nasa.gov
+Authored by Eliot Aretskin-Hariton: eliot.d.aretskin-hariton@nasa.gov, [Intelligent Control and Autonomy Branch](http://www.grc.nasa.gov/WWW/cdtb/index.html),
+NASA Glenn Research Center,
+
 
 **Network Protocol Summary Stats:**
-* Half-Duplex works with wired or wireless networks
+* Half-Duplex & Hard Real-Time, works with Wired or Wireless networks
 * Command / Response protocol using 1 Master / Multiple Slave Architecture
 * 8 Byte payload
 * RTT Performance (See Table and Note below)  
