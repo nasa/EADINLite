@@ -86,5 +86,17 @@ about inserting delays between the write and read operations. These delays
 should scale with network speed selected from 9600 - 4000000 baud. 
 
 **References:**
+EADIN Lite Communication Network
+Read More: http://www.techbriefs.com/component/content/article/ntb/tech-briefs/electronics-and-computers/23450
+
+Eliot Aretskin-Hariton, Benchmarking Variants of a Hardware-in-the-Loop Simulation System
+Read More: http://arc.aiaa.org/doi/abs/10.2514/6.2016-1425
+
+Eliot Aretskin-Hariton, A Modular Framework for Modeling Hardware Elements in Distributed Engine Control Systems
+Read More: http://arc.aiaa.org/doi/abs/10.2514/6.2014-3530
+
+Dennis Culley, Developing an Integration Infrastructure for Distributed Engine Control Technologies
+Read More: http://arc.aiaa.org/doi/abs/10.2514/6.2014-3532
+
 Ross N. Williams, A painless guide to CRC Error Detection Algorithms
-availalbe for download at: http://www.ross.net/crc/download/crc_v3.txt
+Read More: http://www.ross.net/crc/download/crc_v3.txt
