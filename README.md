@@ -28,8 +28,15 @@ Time is expressed in microseconds.
 
 | Memeory Req. | Program Storage (Bytes) | Dynamic Memory (Bytes) |
 |:------------:|:-----------------------:|:----------------------:|
-| Default      | 9,510                   |    908                 |
-| Minimum      | 8,618                   | 396                    |
+| Default      | 9,496                   |    900                 |
+| Minimum      | 8,604                   | 388                    |
+
+* Successfull Deployment
+	* Arduino Yun
+	* Arduino Mega 2560 (the $10 version)
+* Expected Compatibility
+	* Arduino Pro Micro
+	* Any Arduino with Hardware Serial ports
 
 **Overview:**
 This code was created to support the Distributed Engine Control task
