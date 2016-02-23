@@ -1,9 +1,27 @@
 # EADINLite
-EADIN_Lite Network Protocol
+EADIN_Lite Network Protocol 
  
 Authored by Eliot Aretskin-Hariton
 NASA Glenn Research Center, Cleveland, Ohio, 44135
 earetski@mail.nasa.gov
+
+Network Protocol Summary Stats:
+* Half-Duplex works with wired or wireless networks
+* Command / Response protocol using 1 Master / Multiple Slave Architecture
+* 8 Byte payload
+* RTT Performance         
+** (see note)   |      TYPICAL   |    WORST CASE  |
+** 4000000 baud |    943 +/- 13  |    981 +/- 13  | 
+**  921600 baud |  1,197 +/- 15  |  1,280 +/-  7  |
+**  115200 baud |  4,467 +/- 12  |  4,907 +/-  7  |
+**    9600 baud | 45,798 +/- 12  | 50,750 +/- 20  |
+** units        |(micros 1-sigma)|(micros 1-sigma)|
+
+
+
+Note: Performance based on message Round Trip Time (RTT), which includes
+formulation of the message by the master, receipt of message by slave
+and recept of respons from slave by master. master -> slave -> master. 
 
 This code was created to support the Distributed Engine Control task
 as part of the Fixed Wing Aeronautics project. The purpose of this research 
@@ -47,6 +65,13 @@ Total Size: 18 bytes
 	* 8 bytes DATA_L (can be modified)
 * Footer: 2 bytes 
 	* 2 bytes CRCFast (a 16 bit CRC, Default)
+
+Version 2 is incompatible with previous versions as it is constructed with 
+different function calls using an object oriented programming approach for
+easier use. The code now contains built in timing functions which should
+enable the user to simply call OBJ.read() OBJ.write() functions without worrying
+about inserting delays between the write and read operations. These delays
+should scale with network speed selected from 9600 - 4000000 baud. 
 
 References:
 	Ross N. Williams, A painless guide to CRC Error Detection Algorithms
