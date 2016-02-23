@@ -1,61 +1,24 @@
 #include "eadin.h" // custom libary included later!
 
-// DEFINITIONS
-#define RTS 4 // the switch used to set read / transmit
-#define my_ID 0x01 // the ID of this node
+EADIN TTL(0x01);
 
-// ALLOCATE MESSAGE MEMORY AND STRUCTURES
-struct missive_essentials content;
-uint8_t flag;
+uint8_t tmp[8] = {0xaa,0xbb,0xcc,0xdd,0xee,0xff,0xee,0xdd};
+uint8_t tmp2[8] = {0x00};
 
-// POTENTIOMETER SETUP
-const uint8_t sensorPin = A4; //Sensor connected to Analog 4
-int sensorValue = 0;
-float sensorVoltage = 0;
-unsigned int sensorData = 0;
-
+//float lastGood;
 
 void setup() {
-  delay(5000);
-  
-  Serial.begin(115200);
-  Serial.println("Sketch Name : EADIN_Slave");
-  
-  // Start the RS-485 Connection
-  eadin_configure(my_ID,RTS,&Serial1,4000000);
+  TTL.begin(&Serial1,115200,4);
+  //Serial.begin(115200);
 }
 
 void loop() {
-  // read the latest potentiometer reading
-  sensorData = read_pot(sensorPin);
-
-  // Read data sent to the device
-  content.node_ds=0;
-  content.message_no=0;
-  flag = read_missive(&content);
-  if (flag==1){ // messsage was successfully ready & was for this node 
-    if (content.request_type==ENQ || content.request_type==NAK){ // reply is requested
-      content.request_type=ACK;
-      content.node_ds=0;
-      content._data[0]=sensorData & 0xff; // take the right 8 bits
-      content._data[1]=sensorData >> 8; // take the left 8 bits
-      write_missive(&content);
-    }
+  int flag = TTL.read(tmp2);
+  if (flag==0x01){
+    TTL.write(tmp);
+    digitalWrite(13,HIGH);
+    //lastGood = millis();
   }
-  else
-  {
-    clear_serialbuffer();
-  }
-  flag=0;
+  //if (millis() > 10000 + lastGood) {digitalWrite(13,LOW);}
+  //if (flag!=2){Serial.println(flag,HEX);}
 }
-
-// +++++++++++++++++ READ POTENTIOMETER +++++++++++++++++++++++++
-unsigned int read_pot(uint8_t sensor_pin){
-  int sensorValue = analogRead(sensor_pin);
-  float sensorVoltage= sensorValue*(5.0/1023.0); //Sets sensor value 5v=1023.0
-  unsigned int out = sensorVoltage*100; // Defines out- Voltage*100
-  // setDecimalsI2C(0b0000010); // sets the decimal point on the display up by 2 decimals
-  // above function is included as part of the function that sets the 7segdisplay properties
-  return out;
-}
-
