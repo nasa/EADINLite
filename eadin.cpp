@@ -178,7 +178,7 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
     delay(3000); // we always want to have a short delay before the start of the program to enable
                 // access to the boot loader incase we screw up loading a program
     #ifdef DEBUG
-        Serial.begin(115200);
+        Serial.begin(115200); // <- CHANGE ME if you want DEBUG to output on a different port
         Serial.print("Node ID (HEX): ");
         Serial.println(my_ID,HEX);
         Serial.println("To start node with specific ID, pass ID argument to EADIN() at class assignment.");
@@ -347,17 +347,20 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
     if (slave){message_no = 0x00;} // clear the message number as it is only good once
 
     // Reset wwFlag
-    if (!slave & cmd_only){delayMicroseconds(500);wwFlag = false;} // give everyone time to wipe their buffers after sending this message
+    if (!slave & cmd_only){delayMicroseconds(timeOutFactor);wwFlag = false;} // give everyone time to wipe their buffers after sending this message
     // this command makes it faster to write the next time, but penalizes you this time
     // we did this to ensure that multiple write requests, or time sensitive write requests
     // such as actuator commands, could be carried out quickly after the control sequence was calculated
     // e.g. master calculates next control value and then immediatly commands actuator with NAK
-    // then master has to wait 500micros after sending that command.
+    // then master has to wait timeOutFactor micros after sending that command.
     // if the master writes too fast, a node may not have time to finish
     // processing the last message before receiving a new message, this will
     // then cause the node to time out before it can respond to the masters 
     // inquiry. This section of code was inserted after extensive testing and 
     // debugging.
+    // We changes to using timeOutFactor for the delay because we need a larger
+    // delay if the network is running at a slower baud rate because it takes
+    // longer for the bits to shift out of the outgoing buffer
 }
 
 uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
