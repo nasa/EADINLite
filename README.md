@@ -1,9 +1,9 @@
 # EADINLite
 EADIN_Lite Network Protocol 
  
-Authored by Eliot Aretskin-Hariton
+Authored by [Eliot Aretskin-Hariton](earetski@mail.nasa.gov), [Intelligent Control and Autonomy Branch](http://www.grc.nasa.gov/WWW/cdtb/index.html),
 NASA Glenn Research Center, Cleveland, Ohio, 44135
-earetski@mail.nasa.gov
+
 
 **Network Protocol Summary Stats:**
 * Half-Duplex works with wired or wireless networks
@@ -94,4 +94,4 @@ Eliot Aretskin-Hariton, [A Modular Framework for Modeling Hardware Elements in D
 
 Dennis Culley, [Developing an Integration Infrastructure for Distributed Engine Control Technologies](http://arc.aiaa.org/doi/abs/10.2514/6.2014-3532)
 
-Ross N. Williams, [A painless guide to CRC Error Detection Algorithms])http://www.ross.net/crc/download/crc_v3.txt)
+Ross N. Williams, [A painless guide to CRC Error Detection Algorithms](http://www.ross.net/crc/download/crc_v3.txt)
