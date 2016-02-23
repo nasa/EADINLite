@@ -25,6 +25,7 @@ and recept of respons from slave by master. master -> slave -> master.
 Time is expressed in microseconds.
 
 * Memory Requirements
+
 | Memeory Req. | Program Storage (B) | Dynamic Memory (B) |
 |:------------:|:-------------------:|:------------------:|
 | Default      | 9,510               |    908             |
