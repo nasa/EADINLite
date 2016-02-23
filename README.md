@@ -1,9 +1,9 @@
 # EADINLite
 EADIN_Lite Network Protocol 
  
-Authored by [Eliot Aretskin-Hariton](earetski@mail.nasa.gov), [Intelligent Control and Autonomy Branch](http://www.grc.nasa.gov/WWW/cdtb/index.html),
-NASA Glenn Research Center, Cleveland, Ohio, 44135
-
+Authored by Eliot Aretskin-Hariton, [Intelligent Control and Autonomy Branch](http://www.grc.nasa.gov/WWW/cdtb/index.html),
+NASA Glenn Research Center
+eliot.d.aretskin-hariton@nasa.gov
 
 **Network Protocol Summary Stats:**
 * Half-Duplex works with wired or wireless networks
