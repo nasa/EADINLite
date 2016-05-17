@@ -19,12 +19,12 @@ receipt.*/
 
 
 // Setup local variables
-uint32_t baud;
+unsigned long baud;
 HardwareSerial* rw_port;
 uint8_t RTS;
 uint8_t my_ID;
-float waitTime; // used in message_start() function
-float timeOutFactor;
+unsigned long waitTime; // used in message_start() function
+unsigned long timeOutFactor; // used when the master is sending a command and not requesting a reply
 bool wwFlag = false; // used exclusively by the master to help space out timing between multiple write requests (write write flag)
                     // false means we have not attempted multiple writs in a row without reading first
                     // the write command has a built in delay and will reset the wwFlag to false
@@ -188,8 +188,20 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
     #endif
     // do some checks to make sure input values are valid using the assert() function?
     // set the values based on default / input
-    rw_port = T_rw_port; // the port used for control communication
+    rw_port = T_rw_port; // the port used for control communication 
+    // check to make sure baud rate is greater than zero. We won't enforce this 
+    // in the input command because it'll break backwards compatibility   
+    if (T_baud < 0) 
+    {
+        #ifdef DEBUG
+            Serial.println("Illegal Operation: Baud rate cannot be negative!")
+            Serial.println("WARNING: Correcting Illegal Operation by flipping sign on Baud rate.")
+        #endif
+        T_baud = - T_baud;
+    }
     baud = T_baud; // baud rate of communication
+
+
     (*rw_port).begin(baud);
     (*rw_port).setTimeout(0.5);// (milliseconds) any amount of time below 1 
     // will cause readBytes & readBytesUntil to run as fast as possible without 
@@ -199,9 +211,9 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
     digitalWrite(RTS,LOW); // this is an arduino IDE specific function
 
     // ending delay for read function
-    // these may need to be retuned if overall message size increases past 18 bytes
-    waitTime = 1000*115200/baud; //(micros)
-    timeOutFactor = 575+75*4000000/baud; // (micros)
+    // these may need to be re-tuned if overall message size increases past 18 bytes
+    waitTime = round(1000*115200/baud); //(micros)
+    timeOutFactor = round(575+75*4000000/baud); // (micros)
     
     // Recalculate CRCFast table if required if the table is enabled
     #ifdef enable_CRCFast
@@ -347,7 +359,18 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
     if (slave){message_no = 0x00;} // clear the message number as it is only good once
 
     // Reset wwFlag
-    if (!slave & cmd_only){delayMicroseconds(timeOutFactor);wwFlag = false;} // give everyone time to wipe their buffers after sending this message
+    if (!slave & cmd_only)
+    {
+        if (timeOutFactor < 16000) // this value is ok for use with delayMicros
+        {
+            delayMicroseconds(timeOutFactor);
+        }         
+        else // this delay is too large for delayMicros
+        {
+            delay(timeOutFactor/1000); 
+        }
+        wwFlag = false;
+    } // give everyone time to wipe their buffers after sending this message
     // this command makes it faster to write the next time, but penalizes you this time
     // we did this to ensure that multiple write requests, or time sensitive write requests
     // such as actuator commands, could be carried out quickly after the control sequence was calculated
@@ -768,8 +791,10 @@ bool EADIN::message_start(){
     uint8_t temp0, temp1 = 0xAB;   
     uint8_t bytes_arrived;
     bool flag = true; // first time 
-    float timeOut = micros() + timeOutFactor;
-    while (timeOut > micros())
+    unsigned long timeOut = micros() + timeOutFactor;
+    // note micros() resets every 70 minutes, thus every 70 minutes we should 
+    // expect to be unable to receive messages for timeOutFactor amount of time
+    while (timeOut > micros()) 
     {
         #ifdef DEBUG
             Serial.println("While Loop");

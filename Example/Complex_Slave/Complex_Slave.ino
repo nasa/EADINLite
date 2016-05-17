@@ -6,11 +6,11 @@
 #include "eadin.h" // custom libary included later!
 
 // CLASSES
-EADIN rs485(0x02);
+EADIN rs485(0x01);
 
 // SCHEDULING
-int hampsterWheel = 15; // (ms) the maximum time between updating sensor information
-float timeout = millis() + hampsterWheel;
+unsigned int hampsterWheel = 15; // (ms) the maximum time between updating sensor information
+unsigned long timeout = millis() + hampsterWheel;
 
 // STORAGE
 uint8_t data_in[8] = {0x00};
@@ -31,14 +31,14 @@ void loop() {
   } 
   
   // While Loop - put processes that are only run occasionally in here  
-  if (flag == 1 || millis() > timeout){ // deleting the flag == 1 will cause the code to execute independeltly of the timing of the master read
+  if (flag == 1 || millis() > timeout)
+    { // deleting the flag == 1 will cause the code to execute independeltly of the timing of the master read
     // this may cause sincronization problems because when the code inside this if statement is executing
     // messages from the master controller are being ignored
     
     // ADD SOME CODE TO RUN A SENSOR / ACTUATOR HERE
     // It will execute every 15 milliseconds or after a successful read from the master
     timeout = millis() + hampsterWheel;
-  }  
-  
+    } 
 }
 

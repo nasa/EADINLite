@@ -4,7 +4,7 @@ EADIN TTL(0x00);
 
 uint8_t tmp[8] = {0xa1,0xb2,0xc3,0xd4,0xe5,0xf6,0xe7,0xd8};
 
-float startTime,endTime;
+unsigned long startTime,endTime;
 
 void setup() {
   TTL.begin(&Serial1,115200,4);
