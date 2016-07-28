@@ -11,7 +11,17 @@
 /* MEMORY: Comment out this line if you want to decrease the memory footprint 
 of the program by ~ 500B . This will limit the program to using only CRCSlow, 
 which will increase the time for message creation, transmission, and reply 
-receipt.*/
+receipt.
+
+Debug Messages:
+FAIL - indicates a function call failure which cancelles that function call
+STATUS - indicates current program status
+WARN - indicates suboptimal operation and corrective action automatically taken,
+NOTE - indicates methods to fix warnings and failures
+fcall - lists the function that was called by the program
+
+
+*/
 
 #define enable_CRCFast
 
@@ -65,6 +75,7 @@ uint8_t target = 0x00; // destination address
 uint8_t message_no = 0x00;
 
 bool slave = false; // is this a slave node
+bool busMonitor = false; // this node is a bus Monitor
 bool debug = false; // show error messages on Serial. port
 bool quickCRC = false; // which CRC method to use (fast or slow)
 
@@ -150,26 +161,45 @@ uint8_t CRCtable2[256] =
 //+++++++++++++++++++++++++
 
 // Default Constructor
-EADIN::EADIN(uint8_t T_my_ID /*= random(1,255)*/, bool qCRC /*= true*/, uint16_t poly /*= 0xC599*/)
+EADIN::EADIN(uint8_t T_my_ID, bool qCRC /*= true*/, uint16_t poly /*= 0xC599*/)
 {
-    my_ID = T_my_ID;// node ID (0x00 = master, all others are slaves) 
-    // if my_ID is left blank, a random value will be assigned and printed 
-    // to the serial port if debug is true
+    my_ID = T_my_ID;// node ID  
     quickCRC = qCRC; // set to true if you want to use the fast method or false if you want to use the slow method    
     // error handling if quick method is selected but data array supporting it is disabled to conserve memory
     #ifndef enable_CRCFast 
         #ifdef DEBUG
             if(qCRC)
             {
-                Serial.println("ERROR: CRCFast selected but enable_CRCFast is commented out in eadin.cpp to save memory!");  
-                Serial.println("Switching to CRCSlow");
+                Serial.println("WARNING: CRCFast selected but enable_CRCFast is commented out in eadin.cpp to save memory!");  
+                Serial.println("NOTE: Switching to CRCSlow");
             }
         #endif
         qCRC = false;
     #endif
     polynomial = poly; // the polynomial to use for the CRC calculations (default = 0xC599)
-    if (my_ID!= 0x00){slave=true;} // this is a slave node
-    // don't put any delays or Serial.prints here because delays brick the arduino and Serial.prints show up before you can physically open up the terminal
+
+    // check node ID assignments for validity
+    if (my_ID==0xff)
+    {
+        #ifdef DEBUG
+            Serial.println("FAIL: node ID 0xff is reserved. 
+            Serial.println("NOTE: Set 0x00 for master.");
+            Serial.println("NOTE: Set 0x01 through 0xfd for slave.");
+            Serial.println("NOTE: Set 0xfe for bus monitor.");
+        #endif
+        return;
+    }
+    if (my_ID!= 0x00) // this is a slave node
+    {
+        slave=true;
+    } 
+    if (my_ID == 0xfe) // this node is a bus monitor
+    {
+        busMonitor = true;
+    }
+
+    // NOTE: don't put any delays or Serial.prints here because delays 
+    // brick the arduino and Serial.prints show up before you can physically open up the terminal
 }
 
 // (see website for general creation: http://www.learncpp.com/cpp-tutorial/85-constructors/)
@@ -179,12 +209,15 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
                 // access to the boot loader incase we screw up loading a program
     #ifdef DEBUG
         Serial.begin(115200); // <- CHANGE ME if you want DEBUG to output on a different port
-        Serial.print("Node ID (HEX): ");
+        delay(3000);
+        Serial.println("fcall: EADIN::begin()");
+        Serial.println("");
+        Serial.print("STATUS: Node ID (HEX): ");
         Serial.println(my_ID,HEX);
-        Serial.println("To start node with specific ID, pass ID argument to EADIN() at class assignment.");
-        if (slave){Serial.println("This node is a Slave node.");}
-        else {Serial.println("This node is the Master node.");}
-        Serial.println("Starting hardware serial port.");
+        if (slave){Serial.println("STATUS: This node is a Slave node.");}
+        else {Serial.println("STATUS: This node is the Master node.");}
+        if (busMonitor){Serial.println("STATUS: This node is also a Bus Monitor node.");}
+        Serial.println("STATUS: Starting hardware serial port.");
     #endif
     // do some checks to make sure input values are valid using the assert() function?
     // set the values based on default / input
@@ -194,8 +227,8 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
     if (T_baud < 0) 
     {
         #ifdef DEBUG
-            Serial.println("Illegal Operation: Baud rate cannot be negative!")
-            Serial.println("WARNING: Correcting Illegal Operation by flipping sign on Baud rate.")
+            Serial.println("WARNING: Baud rate cannot be negative!")
+            Serial.println("NOTE: Correcting Illegal Operation by flipping sign on Baud rate.")
         #endif
         T_baud = - T_baud;
     }
@@ -227,7 +260,10 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
 void EADIN::end(){
     // this call closes the port
     #ifdef DEBUG
-        Serial.println("Closing hardware serial port.");
+        Serial.println("fcall: EADIN::end()");
+    #endif
+    #ifdef DEBUG
+        Serial.println("STATUS: Closing hardware serial port.");
     #endif
     (*rw_port).end();        
 }
@@ -254,23 +290,35 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
 
     // error handling if user enters incorrect input based on the node ID of
     // this microcontroller and it's message target
-    if (slave && target != 0x00) // illegal user input (slave targeting slave)
+
+    #ifdef DEBUG
+        Serial.println("fcall: EADIN::write()");
+    #endif
+    if (busMonitor) // this node is meant to be a bus monitor and should never write to the network
+    {
+        #ifdef DEBUG
+            Serial.println("FAIL: Bus Monitor nodes must not write to network.");
+            Serial.println("NOTE: Cancelling write opreration.");
+        #endif     
+        return;
+    }
+    else if (slave && target != 0x00) // illegal user input (slave targeting slave)
     {
         target = 0x00;        
         #ifdef DEBUG
-            Serial.println("Illegal operation: Slave nodes must write to master and cannot write to other slave nodes.");
-            Serial.println("WARNING: Correcting illegal usage by redirecting slave to talk to master.");
+            Serial.println("WARNING: Slave nodes must write to master and cannot write to other slave nodes.");
+            Serial.println("NOTE: Correcting illegal usage by redirecting slave to talk to master.");
         #endif        
     }
     else if (!slave && dest == 0x00)// illegal user input (master targeting master)
     {
         #ifdef DEBUG
-            Serial.println("Illegal operation: Master cannot write to itself.");
-            Serial.println("WARNING: Correcting illegal usage by attempting to use last known good target.");
+            Serial.println("WARNING: Master cannot write to itself.");
+            Serial.println("NOTE: Correcting illegal usage by attempting to use last known good target.");
         #endif
         if (target == 0x00){
             #ifdef DEBUG
-                Serial.println("WRITE FAILURE: Unable to redirect. Last known good target is self!");
+                Serial.println("FAIL: Unable to redirect. Last known good target is self!");
             #endif
             return;
             // we can't reassign target = dest because both target from previous
@@ -287,7 +335,7 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
     else{target = dest;} // assign target as destination from command input
 
     #ifdef DEBUG
-        Serial.print("Writing to hardware serial port. Target Node (HEX) : ");
+        Serial.print("STATUS: Writing to hardware serial port. Target Node (HEX) : ");
         Serial.println(target,HEX);
     #endif
 
@@ -333,9 +381,9 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
     {
         delayMicroseconds(500);
         #ifdef DEBUG
-            Serial.println("CAUTION: Multiple message writes without reading has been detected.");
+            Serial.println("WARNING: Multiple message writes without reading has been detected.");
             Serial.println("NOTE: New message write speed delayed by 1/2 milisecond.");
-            Serial.println("      To avoid this delay in the future, set cmd_only to true, e.g. OBJ.write(mess,dest,true); ");
+            Serial.println("NOTE: To avoid this delay in the future, set cmd_only to true, e.g. OBJ.write(mess,dest,true); ");
         #endif
     }
     else if (!slave){wwFlag = true;} // set the read-read flag)
@@ -348,7 +396,7 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
     // send message[MESSAGE_L]
     serialBroadcast();
     #ifdef DEBUG
-        Serial.print("Sent Message (HEX): ");
+        Serial.print("STATUS: Sent Message (HEX): ");
         for (uint8_t i=0; i<MESSAGE_L; i++)
         {
             Serial.print(message[i],HEX);Serial.print(",");
@@ -384,6 +432,8 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
     // We changes to using timeOutFactor for the delay because we need a larger
     // delay if the network is running at a slower baud rate because it takes
     // longer for the bits to shift out of the outgoing buffer
+
+    return;
 }
 
 uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
@@ -392,19 +442,30 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     // attempt to read from node it last tried to write to.
     // If the node is a slave node, the slave node can only talk to the master
     // node by design. 
+    #ifdef DEBUG
+        Serial.println("fcall: EADIN::read()");
+    #endif
     if (target == 0x00 && my_ID == 0x00) // illegal operation, master trying to read from itself
     {
         #ifdef DEBUG
-            Serial.println("Illegal operation: Master is attempting to read message from itself.");
-            Serial.println("READ FAILURE: Target node set incorrectly by OBJ.write() command.");            
-            Serial.println("SOLUTION: Master must write a message to a valid target before it can read a message from that target.");
-            Serial.println("Please use OBJ.write() to write to a valid target before attempting to use OBJ.read() command.");            
+            Serial.println("WARNING: Master is attempting to read message from itself.");
+            Serial.println("NOTE: Exiting read operation.");
+            Serial.println("NOTE: Target node set incorrectly by OBJ.write() command.");            
+            Serial.println("NOTE: Master must write a message to a valid target before it can read a message from that target.");
+            Serial.println("NOTE: Use OBJ.write() to write to a valid target before attempting to use OBJ.read() command.");            
         #endif
-        return 0;
+        if (!busMonitor)
+        {
+            return 0; // specific error for non-bus monitors
+        }
+        else 
+        {
+            return 0xff; // generic error for bus monitor       
+        }
     }
 
     #ifdef DEBUG
-        Serial.print("Reading from hardware serial port. Target Node (HEX) : ");
+        Serial.print("STATUS: Reading from hardware serial port. Target Node (HEX) : ");
         Serial.println(target,HEX);
     #endif  
 
@@ -419,9 +480,16 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     if (message_start()==0)
     {
         #ifdef DEBUG
-            Serial.println("READ FAILURE: Flag 2 - Could not find start of message");
+            Serial.println("WARNING: Flag 2 - Could not find start of message");
         #endif
-        return 2;
+        if (!busMonitor)
+        {
+            return 2; // specific error for non-bus monitors
+        }
+        else 
+        {
+            return 0xff; // generic error for bus monitor       
+        }
     }
     else {rx_message[0]=BREAK0;
          rx_message[1]=BREAK1;}
@@ -434,10 +502,17 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     (*rw_port).readBytes(&sync,1);
     if (sync!=SYNC)    {
         #ifdef DEBUG
-            Serial.println("READ FAILURE: Flag 3 - incorrect sync string received or no sync string received");
+            Serial.println("WARNING: Flag 3 - incorrect sync string received or no sync string received");
         #endif
         // cleanSerial(1); probably don't need this here
-        return 3;
+        if (!busMonitor)
+        {
+            return 3; // specific error for non-bus monitors
+        }
+        else 
+        {
+            return 0xff; // generic error for bus monitor       
+        }
     }
     else {rx_message[2]=sync;}
 
@@ -447,10 +522,17 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     // now we need to read the rest of the message which is MESSAGE_Length - 3 bytes
     if ((*rw_port).readBytes(&rx_message[Bdex],HEADDER_L) != HEADDER_L)    {
         #ifdef DEBUG
-            Serial.println("READ FAILURE: Flag 4 - we were unable to read all the headder data");
+            Serial.println("WARNING: Flag 4 - we were unable to read all the headder data");
         #endif
         cleanSerial(DATA_L+FOOTER_L); // clear out alteast this many bits
-        return 4;
+        if (!busMonitor)
+        {
+            return 4; // specific error for non-bus monitors
+        }
+        else 
+        {
+            return 0xff; // generic error for bus monitor       
+        }
     }
 
     // DATA INTEGRITY CHECKS
@@ -460,19 +542,27 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     else
     {
         #ifdef DEBUG
-            Serial.println("READ FAILURE: Flag 5 - incorrect request type");
+            Serial.println("WARNING: Flag 5 - incorrect request type");
         #endif
         cleanSerial(DATA_L+FOOTER_L); // clear out alteast this many bits
-        return 5;
+        if (!busMonitor)
+        {
+            return 5; // specific error for non-bus monitors
+        }
+        else 
+        {
+            return 0xff; // generic error for bus monitor       
+        }
     }
     Bdex++; // we are looking at the next byte in the message
 
     // CHECK - DESTINATION
-    // Check who the message is addressed to
-    if (rx_message[Bdex] != my_ID)    
+    // Check who the message is addressed to as long as you're not a bus monitor
+    // if you're a buss monitor, we don't care who the message is addressed to
+    if (rx_message[Bdex] != my_ID && !busMonitor) 
     {
         #ifdef DEBUG
-            Serial.println("READ WARNING: Flag 6 - data is not for this node");
+            Serial.println("WARNING: Flag 6 - data is not for this node");
         #endif
         cleanSerial(DATA_L+FOOTER_L); // clear out alteast this many bits
         return 6;
@@ -480,15 +570,17 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     Bdex++; // we are looking at the next byte in the message
 
     // CHECK - SOURCE
-    // check who sent the message
-    if (rx_message[Bdex] != target)
+    // check who sent the message as long as you're not the bus monitor
+    // if you're a bus monitor, we don't care about who the source is from
+    if (rx_message[Bdex] != target && !busMonitor)
     {
         #ifdef DEBUG
-            Serial.println("READ FAILURE: Flag 7 - data is not from expected source node");
+            Serial.println("WARNING: Flag 7 - data is not from expected source node");
         #endif
         cleanSerial(DATA_L+FOOTER_L); // clear out alteast this many bits
         return 7;
     } 
+    uint8_t messageSourceNodeID = rx_message[Bdex];
     Bdex++; // we are looking at the next byte in the message
 
     // CHECK - MESSAGE #
@@ -497,7 +589,7 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     if (!slave && rx_message[Bdex] != message_no)
     {
         #ifdef DEBUG
-            Serial.println("READ FAILURE: Flag 8 - message# received did not match with expected message#");
+            Serial.println("WARNING: Flag 8 - message# received did not match with expected message#");
         #endif
         cleanSerial(DATA_L+FOOTER_L); // clear out alteast this many bits
         return 8;
@@ -513,10 +605,17 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
     if ((*rw_port).readBytes(&rx_message[Bdex],DATA_L+FOOTER_L) != DATA_L+FOOTER_L)    
     {
         #ifdef DEBUG
-            Serial.println("READ FAILURE: Flag 9 - we were unable to read all the message data & footer");
+            Serial.println("WARNING: Flag 9 - we were unable to read all the message data & footer");
         #endif
         cleanSerial(FOOTER_L); // clear out alteast this many bits
-        return 9;
+        if (!busMonitor)
+        {
+            return 9; // specific error for non-bus monitors
+        }
+        else 
+        {
+            return 0xff; // generic error for bus monitor       
+        }
     } 
 
     // CHECK - CRC
@@ -530,23 +629,39 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
         for (uint8_t i=0; i<DATA_L; i++){
             rx_data[i]=rx_message[PREAMBLE_L+HEADDER_L+i];}
         #ifdef DEBUG
-            Serial.println("READ SUCCESS: Flag 1 - all checks passed");
-            Serial.print("Read Message (HEX): ");
+            Serial.println("SUCCESS: Flag 1 - all read checks passed");
+            Serial.print("STATUS: Read Message (HEX): ");
             for (uint8_t i=0; i<MESSAGE_L; i++){Serial.print(message[i],HEX);Serial.print(",");}
             Serial.println("");
         #endif
-        return 1;
-        } 
+        if (!busMonitor)
+        {
+            return 1; // message read success for typical nodes
+        }
+        else 
+        {
+            return messageSourceNodeID; // message source nodeID for bus monitors      
+        }
+    } 
     else 
     {
         // crc failed
         // clear the message field for good measure
-        for (uint8_t i=0; i<DATA_L; i++){
-            rx_data[i]=0x00;}
-            #ifdef DEBUG
-                Serial.println("READ FAILURE: Flag 10 - crc check failed");
-            #endif
-            return 10;
+        for (uint8_t i=0; i<DATA_L; i++)
+        {
+            rx_data[i]=0x00;
+        }
+        #ifdef DEBUG
+            Serial.println("WARNING: Flag 10 - crc check failed");
+        #endif
+        if (!busMonitor)
+        {
+            return 10; // message read success for typical nodes
+        }
+        else 
+        {
+            return 0xff; // message source nodeID for bus monitors      
+        }
    } 
 }  
 
@@ -670,11 +785,11 @@ void EADIN::CRC16Fast_table(){
     // create the table of all possible XOR combinations of a given 2byte CRC   
     // typical computation time is 61 miliseconds
     #ifdef DEBUG
-        Serial.println("Clearing CRCFast tables 1 & 2...");
+        Serial.println("STATUS: Clearing CRCFast tables 1 & 2...");
     #endif
     for (uint16_t i=0; i<0xFF; i++){CRCtable1[i]=0x0000;CRCtable2[i]=0x0000;}
     #ifdef DEBUG
-        Serial.print("Rebuilding CRCFast table with polynomial (HEX): ");
+        Serial.print("STATUS: Rebuilding CRCFast table with polynomial (HEX): ");
         Serial.println(polynomial,HEX);
     #endif
     for (uint16_t i=0x00; i<=0xFF; i++){
@@ -704,11 +819,11 @@ void EADIN::CRC16Fast_table(){
         CRCtable2[i] = data_split >> 8;
     }
     #ifdef DEBUG
-        Serial.println("Rebuilding CRCFast table complete.");
-        Serial.println("New CRC Table : CRCtabel1[256]: (HEX)");
+        Serial.println("STATUS: Rebuilding CRCFast table complete.");
+        Serial.println("STATUS: New CRC Table : CRCtabel1[256]: (HEX)");
         for (uint8_t i=0; i<0xFF; i++){Serial.print(CRCtable1[i],HEX);Serial.print(",");}
         Serial.println("");
-        Serial.println("New CRC Table : CRCtabel2[256]: (HEX)");
+        Serial.println("STATUS: New CRC Table : CRCtabel2[256]: (HEX)");
         for (uint8_t i=0; i<0xFF; i++){Serial.print(CRCtable2[i],HEX);Serial.print(",");}
         Serial.println("");
     #endif
@@ -797,13 +912,13 @@ bool EADIN::message_start(){
     while (timeOut > micros()) 
     {
         #ifdef DEBUG
-            Serial.println("While Loop");
+            Serial.println("STATUS: Searching for Message Start...");
         #endif
         bytes_arrived = (*rw_port).available();
         if (bytes_arrived>MESSAGE_L*1.5) // we are a message behind, wipe the buffer
         {
             #ifdef DEBUG
-                Serial.println("Buffer > Message_L*1.5");
+                Serial.println("STATUS: Buffer > Message_L*1.5");
             #endif
             // note, originally we tried if (bytes_arrived>MESSAGE_L*2), but what would happen is that
             // when a message wasn't read in time (flag 2 on master), then master would be perpetually 1 message behind
@@ -814,7 +929,7 @@ bool EADIN::message_start(){
         if (bytes_arrived>MESSAGE_L/2) // we might have a message, try to read it     
         {
             #ifdef DEBUG
-                Serial.println("Buffer > Message_L/2");
+                Serial.println("STATUS: Buffer > Message_L/2");
             #endif
             if (flag){(*rw_port).readBytes(&temp0,1);flag = false;} // grab the first byte and store for this session
             for (int i =0; i<MESSAGE_L*2; i++)
@@ -853,11 +968,8 @@ void EADIN::cleanSerial(uint8_t bytes /* = 0 */){
     // might be larger.
     // limit the number of bytes we'll destroy to that of our black hole size
     if (bytes_arrived>max_buf){bytes_arrived=max_buf;}
-    #ifdef DEBUG
-        Serial.println("Check Arrived");
-    #endif
     (*rw_port).readBytes(&black_hole[0],bytes_arrived); // place a bunch of bits in the garbage
     #ifdef DEBUG
-        Serial.println("Delete");
+        Serial.println("STATUS: Deleting message buffer.");
     #endif
 }
