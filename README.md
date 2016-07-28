@@ -11,30 +11,33 @@ NASA Glenn Research Center,
 * 8 Byte payload
 * RTT Performance (See Table and Note below)  
       
-|  Speed       |  TYPICAL        | WORSE CASE      |
+|  Speed       |    Quick CRC    |   Slow CRC      |
 |:------------:|:---------------:|:---------------:|
 | 4000000 baud |     943 +/- 13  |   981 +/- 13    |
 |  921600 baud |   1,197 +/- 15  |  1,280 +/-  7   |
 |  115200 baud |   4,467 +/- 12  |  4,907 +/-  7   |
 |    9600 baud |  45,798 +/- 12  | 50,750 +/- 20   |
-|     units    | (micros 1-sigma)|(micros 1-sigma) |
+|     units    |(micro sec, 1sig)|(micro sec, 1sig)|
 
 Note: Performance based on message Round Trip Time (RTT), which includes
 formulation of the message by the master, receipt of message by slave
 and recept of respons from slave by master. master -> slave -> master. 
-Time is expressed in microseconds.
+Time is expressed in microseconds and the average and standard deviation are shown. 
+Difference between quick and slow Cyclic Redundancy Check (CRC) protocols 
+is more pronounced at slower baud rates.
 
-* Memory Requirements
+* Memory Requirements for Master Node
 
 | Memeory Req. | Program Storage (Bytes) | Dynamic Memory (Bytes) |
 |:------------:|:-----------------------:|:----------------------:|
-| Default      | 9,496                   |    900                 |
-| Minimum      | 8,604                   | 388                    |
+| Minimum      |  6,926                  |   548                  |
+| Default      |  7,812                  | 1,060                  |
+| Maximum      | 11,862                  | 3,838                  |
 
-* Successfull Deployment
-	* Arduino Yun
+* Latest Build Successfull Deployment
 	* Arduino Mega 2560 (the $10 version)
 * Expected Compatibility
+	* Arduino Yun
 	* Arduino Pro Micro
 	* Any Arduino with Hardware Serial ports
 

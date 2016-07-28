@@ -182,7 +182,7 @@ EADIN::EADIN(uint8_t T_my_ID, bool qCRC /*= true*/, uint16_t poly /*= 0xC599*/)
     if (my_ID==0xff)
     {
         #ifdef DEBUG
-            Serial.println("FAIL: node ID 0xff is reserved. 
+            Serial.println("FAIL: node ID 0xff is reserved."); 
             Serial.println("NOTE: Set 0x00 for master.");
             Serial.println("NOTE: Set 0x01 through 0xfd for slave.");
             Serial.println("NOTE: Set 0xfe for bus monitor.");
@@ -227,8 +227,8 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
     if (T_baud < 0) 
     {
         #ifdef DEBUG
-            Serial.println("WARNING: Baud rate cannot be negative!")
-            Serial.println("NOTE: Correcting Illegal Operation by flipping sign on Baud rate.")
+            Serial.println("WARNING: Baud rate cannot be negative!");
+            Serial.println("NOTE: Correcting Illegal Operation by flipping sign on Baud rate.");
         #endif
         T_baud = - T_baud;
     }
