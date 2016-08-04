@@ -537,8 +537,11 @@ uint8_t EADIN::read(uint8_t rx_data[]){ // returns a read success / failure flag
 
     // DATA INTEGRITY CHECKS
     // CHECK - REQUEST TYPE
-    if ((slave && (rx_message[Bdex]==ENQ || rx_message[Bdex]==NAK)) || (!slave && rx_message[Bdex]==ACK)){} // correct request type 
-        // note master will not accept NAK from slave, only slaves accept NAK from master
+    if (
+        (busMonitor && (rx_message[Bdex]==ENQ || rx_message[Bdex]==ACK || rx_message[Bdex]==NAK)) ||  // bust monitor accepts all message types
+        (slave && (rx_message[Bdex]==ENQ || rx_message[Bdex]==NAK)) ||  // slave will only accept ENQ or NAK 
+        (!slave && rx_message[Bdex]==ACK)){} // master will only accept ACK from slave
+        // correct request type 
     else
     {
         #ifdef DEBUG
