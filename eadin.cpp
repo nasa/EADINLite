@@ -3,7 +3,7 @@
 
 //********************* BUILD OPTIONS ***********************
 /* DEBUG: Uncomment this line if you want to see debugging output
- please note that debugging requires allot of memory and 
+ please note that debugging requires a lot of memory and 
  it may not load on microprocessors with less than 2.5KB of dynamic memory */
 
 //#define DEBUG
@@ -176,7 +176,7 @@ EADIN::EADIN(uint8_t T_my_ID /*= random(1,255)*/, bool qCRC /*= true*/, uint16_t
 void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* = 115200 */, uint8_t T_RTS /* = 4 */) // constructor with parameters
 {
     delay(3000); // we always want to have a short delay before the start of the program to enable
-                // access to the boot loader incase we screw up loading a program
+                // access to the boot loader in case we screw up loading a program
     #ifdef DEBUG
         Serial.begin(115200); // <- CHANGE ME if you want DEBUG to output on a different port
         Serial.print("Node ID (HEX): ");
@@ -207,7 +207,7 @@ void EADIN::begin(HardwareSerial *T_rw_port /*= &Serial1 */, uint32_t T_baud /* 
     // will cause readBytes & readBytesUntil to run as fast as possible without 
     // a timeout. Thus 0.5 is essentially = zero timeout
     RTS = T_RTS; // the read transmit switch, a must with RS-485 networks
-    // pull the RTS to low incase it was high for some reason
+    // pull the RTS to low in case it was high for some reason
     digitalWrite(RTS,LOW); // this is an arduino IDE specific function
 
     // ending delay for read function
@@ -340,7 +340,7 @@ void EADIN::write(uint8_t _data[], uint8_t dest /* = 0x00 */, bool cmd_only /* f
     }
     else if (!slave){wwFlag = true;} // set the read-read flag)
     else {}
-    // we don't want the master to continuously write messages without giving slaves the chance to clear out thier buffers of messages not meant for them
+    // we don't want the master to continuously write messages without giving slaves the chance to clear out their buffers of messages not meant for them
     // note: this was moved from the bottom of the code to ensure that this message 
     // would have the best chance of being read as opposed to trying to ensure that 
     // the next message has a good chance of being read
@@ -654,7 +654,7 @@ uint16_t EADIN::CRCFast(uint8_t T_message[]){
     uint16_t remainder = 0x0000; // initial remainder
     for (int m = PREAMBLE_L; m < MESSAGE_L-FOOTER_L; m++){
         data_tmp = T_message[m] ^ (remainder >> 8); // take just one byte of the remainder 
-        remainder =  word(CRCtable1[data_tmp],CRCtable2[data_tmp]) ^ (remainder << 8); // using the data calculated previously, XOR it with the polynomial, then XOR that with the other byte of the remainter, then repeat
+        remainder =  word(CRCtable1[data_tmp],CRCtable2[data_tmp]) ^ (remainder << 8); // using the data calculated previously, XOR it with the polynomial, then XOR that with the other byte of the remainder, then repeat
     // we had to split the tables up because the arduino mega2560 didn't like a single array of size uint16_t [256]    
     }
     remainder |= 1 << 15; // writes a 1 to the most significant bit, this is a C++ generic implementation
@@ -668,7 +668,7 @@ void EADIN::CRC16Fast_table(){
         Serial.println("fcall: CRC16Fast_table()");
     #endif
     // create the table of all possible XOR combinations of a given 2byte CRC   
-    // typical computation time is 61 miliseconds
+    // typical computation time is 61 milliseconds
     #ifdef DEBUG
         Serial.println("Clearing CRCFast tables 1 & 2...");
     #endif
@@ -847,7 +847,7 @@ void EADIN::cleanSerial(uint8_t bytes /* = 0 */){
     if (bytes==0){bytes_arrived= (*rw_port).available();}
     else {bytes_arrived = bytes;}
     // clean out the serial buffer so we're ready for any new messages
-    // we want to prevent old message stack up and partial message stackup incase we error out of reading something
+    // we want to prevent old message stack up and partial message stackup in case we error out of reading something
     uint8_t black_hole [max_buf]; // trash bin array
     // the buffer should only be max_buf Bytes wide, but in future versions it 
     // might be larger.
